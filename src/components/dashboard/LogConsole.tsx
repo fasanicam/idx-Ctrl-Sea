@@ -41,11 +41,11 @@ const LogEntry = ({ log }: { log: LogMessage }) => (
 
 export function LogConsole() {
   const { logs, clearLogs } = useMqtt();
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    if (viewportRef.current) {
+      viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
     }
   }, [logs]);
 
@@ -73,8 +73,8 @@ export function LogConsole() {
           </Tooltip>
         </CardHeader>
         <CardContent className="flex-grow overflow-hidden p-0">
-          <ScrollArea className="h-full" viewportRef={scrollAreaRef}>
-            <div className="p-4 pt-0">
+          <ScrollArea className="h-full">
+            <div className="p-4 pt-0" ref={viewportRef}>
               {logs.length > 0 ? (
                 logs.map((log, index) => <LogEntry key={index} log={log} />)
               ) : (
