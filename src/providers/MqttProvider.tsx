@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useRef, useCallback, type ReactNode, useMemo } from 'react';
 import mqtt, { type MqttClient } from 'mqtt';
-import { getTopics, MQTT_BROKER_URL, WATCHDOG_TIMEOUT, type MqttTopics } from '@/lib/mqtt-topics';
+import { getTopics, MQTT_BROKER_URL, WATCHDOG_TIMEOUT } from '@/lib/mqtt-topics';
 import { useBoat } from '@/hooks/use-boat';
 
 export interface LogMessage {
@@ -32,7 +32,7 @@ export function MqttProvider({ boatName, children }: { boatName: string; childre
   const [powerValue, setPowerValue] = useState(0);
   const [isOnline, setIsOnline] = useState(false);
 
-  const topics = getTopics(boatName);
+  const topics = useMemo(() => getTopics(boatName), [boatName]);
 
   const addLog = useCallback((type: 'sent' | 'received', topic: string, payload: unknown) => {
     const payloadString = typeof payload === 'object' ? JSON.stringify(payload) : String(payload);
@@ -49,12 +49,13 @@ export function MqttProvider({ boatName, children }: { boatName: string; childre
     if (watchdogTimer.current) {
       clearTimeout(watchdogTimer.current);
     }
-    if (!isOnline) setIsOnline(true);
+    // Directly setting isOnline to true, and letting the timeout set it to false
+    setIsOnline(true); 
     watchdogTimer.current = setTimeout(() => {
       setIsOnline(false);
       addLog('received', 'system', 'Watchdog timeout: connection lost.');
     }, WATCHDOG_TIMEOUT + 1000); // Add a grace period
-  }, [isOnline, addLog]);
+  }, [addLog]);
 
   useEffect(() => {
     setConnectionStatus('connecting');
@@ -110,7 +111,8 @@ export function MqttProvider({ boatName, children }: { boatName: string; childre
     return () => {
         if (clientRef.current) {
             if (watchdogTimer.current) clearTimeout(watchdogTimer.current);
-            clientRef.current.end(true); // force close
+            // Using end(true) to force close and discard outgoing messages.
+            clientRef.current.end(true); 
             clientRef.current = null;
         }
     };
