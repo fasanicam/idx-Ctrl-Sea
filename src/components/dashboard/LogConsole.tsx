@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { FileText, Trash2, ArrowRight, ArrowLeft } from 'lucide-react';
-import { useMqtt, type LogMessage } from '@/providers/MqttProvider';
+import { type LogMessage } from '@/providers/MqttProvider';
+import { useMqtt } from '@/hooks/use-mqtt';
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import {

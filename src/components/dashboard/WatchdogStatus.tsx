@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useMqtt } from '@/hooks/use-mqtt';
 import { cn } from '@/lib/utils';
-import { HeartPulse, ShieldAlert, Wifi, WifiOff } from 'lucide-react';
+import { HeartPulse, Wifi, WifiOff } from 'lucide-react';
 
 export function WatchdogStatus() {
   const { isOnline } = useMqtt();
