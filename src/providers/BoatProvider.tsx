@@ -31,7 +31,11 @@ export function BoatProvider({ children }: { children: ReactNode }) {
 
   const setBoatName = useCallback((name: string) => {
     try {
-      localStorage.setItem(BOAT_NAME_STORAGE_KEY, name);
+      if (name) {
+        localStorage.setItem(BOAT_NAME_STORAGE_KEY, name);
+      } else {
+        localStorage.removeItem(BOAT_NAME_STORAGE_KEY);
+      }
       setBoatNameState(name);
     } catch (error) {
       console.error('Could not access localStorage', error);
