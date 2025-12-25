@@ -13,8 +13,7 @@ import { useBoat } from '@/hooks/use-boat';
 import { getTopics } from '@/lib/mqtt-topics';
 
 const lcdSchema = z.object({
-  line1: z.string().max(16, 'Line 1 cannot exceed 16 characters.').default(''),
-  line2: z.string().max(16, 'Line 2 cannot exceed 16 characters.').default(''),
+  line: z.string().max(32, 'Message cannot exceed 32 characters.').default(''),
 });
 
 type LcdFormValues = z.infer<typeof lcdSchema>;
@@ -27,13 +26,16 @@ export function LcdControl() {
   const form = useForm<LcdFormValues>({
     resolver: zodResolver(lcdSchema),
     defaultValues: {
-      line1: '',
-      line2: '',
+      line: '',
     },
   });
 
   const onSubmit = (values: LcdFormValues) => {
-    publish(topics.lcd, values);
+    // The device might expect line breaks to be sent explicitly to split on screen
+    // We'll split the string into two 16-char chunks.
+    const line1 = values.line.substring(0, 16);
+    const line2 = values.line.substring(16, 32);
+    publish(topics.lcd, JSON.stringify({ line1, line2 }));
   };
 
   return (
@@ -43,30 +45,18 @@ export function LcdControl() {
           <Monitor className="h-6 w-6 text-primary" />
           <CardTitle className="font-headline text-2xl">LCD Control</CardTitle>
         </div>
-        <CardDescription>Send text to the onboard display.</CardDescription>
+        <CardDescription>Send text to the onboard display (max 32 chars).</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="line1"
+              name="line"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input placeholder="Line 1" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="line2"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input placeholder="Line 2" {...field} />
+                    <Input placeholder="Message for the LCD..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

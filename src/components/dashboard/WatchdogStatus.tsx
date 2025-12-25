@@ -13,7 +13,7 @@ export function WatchdogStatus() {
       <CardHeader>
         <div className="flex items-center gap-3">
           <HeartPulse className="h-6 w-6 text-primary" />
-          <CardTitle className="font-headline text-2xl">Connection Status</CardTitle>
+          <CardTitle className="font-headline text-2xl">Boat Status</CardTitle>
         </div>
         <CardDescription>Real-time signal from the vessel.</CardDescription>
       </CardHeader>
