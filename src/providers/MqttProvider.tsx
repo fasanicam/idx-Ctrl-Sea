@@ -57,64 +57,64 @@ export function MqttProvider({ boatName, children }: { boatName: string; childre
   }, [isOnline, addLog]);
 
   useEffect(() => {
-    if (!clientRef.current) {
-      setConnectionStatus('connecting');
-      const client = mqtt.connect(MQTT_BROKER_URL);
-      clientRef.current = client;
+    setConnectionStatus('connecting');
+    const client = mqtt.connect(MQTT_BROKER_URL);
+    clientRef.current = client;
 
-      client.on('connect', () => {
-        setConnectionStatus('connected');
-        addLog('received', 'system', `Connected to broker and subscribed to topics for ${boatName}.`);
-        client.subscribe([topics.status, topics.potentiometer], (err) => {
-          if (err) {
-            addLog('received', 'system', `Subscription error: ${err.message}`);
-          }
-        });
-        resetWatchdog(); // Assume online on connect and start timer
-      });
-
-      client.on('message', (topic, message) => {
-        const payload = message.toString();
-        addLog('received', topic, payload);
-
-        if (topic === topics.status && payload === 'Online') {
-          resetWatchdog();
-        } else if (topic === topics.potentiometer) {
-          const value = parseInt(payload, 10);
-          if (!isNaN(value)) {
-            setPowerValue(Math.max(0, Math.min(100, value)));
-          }
+    client.on('connect', () => {
+      setConnectionStatus('connected');
+      addLog('received', 'system', `Connected to broker for ${boatName}.`);
+      client.subscribe([topics.status, topics.potentiometer], (err) => {
+        if (err) {
+          addLog('received', 'system', `Subscription error: ${err.message}`);
+        } else {
+            addLog('received', 'system', 'Successfully subscribed to topics.');
         }
       });
+      resetWatchdog(); // Assume online on connect and start timer
+    });
 
-      client.on('error', (err) => {
-        setConnectionStatus('error');
-        addLog('received', 'system', `Connection error: ${err.message}`);
-        console.error('MQTT Error:', err);
-        client.end();
-      });
+    client.on('message', (topic, message) => {
+      const payload = message.toString();
+      addLog('received', topic, payload);
 
-      client.on('reconnect', () => {
-        setConnectionStatus('connecting');
-        addLog('received', 'system', 'Reconnecting to broker...');
-      });
-
-      client.on('close', () => {
-        setConnectionStatus('disconnected');
-        if (watchdogTimer.current) clearTimeout(watchdogTimer.current);
-        setIsOnline(false);
-        addLog('received', 'system', 'Disconnected from broker.');
-      });
-    }
-
-    return () => {
-      if (clientRef.current) {
-        if (watchdogTimer.current) clearTimeout(watchdogTimer.current);
-        clientRef.current.end();
-        clientRef.current = null;
+      if (topic === topics.status && payload === 'Online') {
+        resetWatchdog();
+      } else if (topic === topics.potentiometer) {
+        const value = parseInt(payload, 10);
+        if (!isNaN(value)) {
+          setPowerValue(Math.max(0, Math.min(100, value)));
+        }
       }
+    });
+
+    client.on('error', (err) => {
+      setConnectionStatus('error');
+      addLog('received', 'system', `Connection error: ${err.message}`);
+      console.error('MQTT Error:', err);
+      client.end();
+    });
+
+    client.on('reconnect', () => {
+      setConnectionStatus('connecting');
+      addLog('received', 'system', 'Reconnecting to broker...');
+    });
+
+    client.on('close', () => {
+      setConnectionStatus('disconnected');
+      if (watchdogTimer.current) clearTimeout(watchdogTimer.current);
+      setIsOnline(false);
+      addLog('received', 'system', 'Disconnected from broker.');
+    });
+    
+    return () => {
+        if (clientRef.current) {
+            if (watchdogTimer.current) clearTimeout(watchdogTimer.current);
+            clientRef.current.end(true); // force close
+            clientRef.current = null;
+        }
     };
-  }, [boatName, addLog, resetWatchdog, topics]);
+}, [boatName, addLog, resetWatchdog, topics]);
 
   const publish = useCallback(
     (topic: string, payload: string | Buffer | object) => {
