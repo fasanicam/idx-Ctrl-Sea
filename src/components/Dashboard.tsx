@@ -4,7 +4,6 @@ import { LcdControl } from './dashboard/LcdControl';
 import { LogConsole } from './dashboard/LogConsole';
 import { PowerGauge } from './dashboard/PowerGauge';
 import { SailControl } from './dashboard/SailControl';
-import { WatchdogStatus } from './dashboard/WatchdogStatus';
 
 export function Dashboard() {
   return (
@@ -18,7 +17,6 @@ export function Dashboard() {
       {/* Column 2 */}
       <div className="flex flex-col gap-6">
         <LcdControl />
-        <WatchdogStatus />
       </div>
 
       {/* Column 3 */}
